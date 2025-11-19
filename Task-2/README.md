@@ -81,7 +81,6 @@ Generate a 1-paragraph specification for an email validation function with these
 - Should return clear and descriptive error messages
 
 Paragraph:
-Specification:
 The email validation function should verify that the input contains an “@” symbol separating the local part and domain, and ensure the domain ends with a valid extension such as .com, .org, or other standard TLDs. The function must check for common formatting errors, including missing characters before or after the “@”, invalid domain structures, or unsupported extensions. When the input fails validation, the function should return clear, descriptive error messages that help the user understand the exact issue, such as “Missing @ symbol,” “Invalid domain extension,” or “Email format incomplete.” If all checks pass, the function should return a success response indicating the email is valid.
 
 2️⃣ CLI Output — 1-Paragraph Specification
