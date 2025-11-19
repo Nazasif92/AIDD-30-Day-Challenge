@@ -81,7 +81,7 @@ Generate a 1-paragraph specification for an email validation function with these
 - Should return clear and descriptive error messages
 
 Paragraph:
-The email validation function should verify that the input contains an “@” symbol separating the local part and domain, and ensure the domain ends with a valid extension such as .com, .org, or other standard TLDs. The function must check for common formatting errors, including missing characters before or after the “@”, invalid domain structures, or unsupported extensions. When the input fails validation, the function should return clear, descriptive error messages that help the user understand the exact issue, such as “Missing @ symbol,” “Invalid domain extension,” or “Email format incomplete.” If all checks pass, the function should return a success response indicating the email is valid.
+The email validation function will assess a given string to confirm its structural validity as an email address. The function must verify that the string contains exactly one "@" symbol, which serves to separate a non-empty local-part from a domain. The domain must also be non-empty and include a valid Top-Level Domain (TLD), such as ".com" or ".org", appearing after the final period. In cases where the input string fails any of these checks, the function will return a clear, descriptive error message specifying the nature of the failure—for example, "Email must contain an '@' symbol" or "Email is missing a valid domain extension." If the email string adheres to all the specified rules, the function will indicate successful validation.
 
 2️⃣ CLI Output — 1-Paragraph Specification
 
@@ -95,7 +95,6 @@ the exact problem. The function should return a success message only
 when all validation rules are satisfied.
 
 
----
 
 ### 📁 Part C — Multiple Choice Questions
 
