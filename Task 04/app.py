@@ -1,103 +1,90 @@
 import streamlit as st
 from pypdf import PdfReader
-import io
-import requests
-import json
+import google.generativeai as genai
 
-# --- Configuration ---
-# Assuming the Context7 MCP server will run locally and expose these endpoints
-BACKEND_URL = "http://localhost:8000" # Adjust if your backend runs on a different port/host
+# -------------------------
+# CONFIGURE GEMINI
+# -------------------------
+# Add your Gemini API key
+GENAI_API_KEY = "YOUR API KEY HERE"
 
-# --- Helper Functions ---
+genai.configure(api_key=GENAI_API_KEY)
 
+model = genai.GenerativeModel("gemini-2.5-flash")
+
+# -------------------------
+# PDF TEXT EXTRACTOR
+# -------------------------
 def extract_text_from_pdf(uploaded_file):
-    """
-    Extracts text from an uploaded PDF file.
-    """
-    pdf_reader = PyPDF2.PdfReader(uploaded_file)
-    text = ""
-    for page in pdf_reader.pages:
-        text += page.extract_text()
-    return text
+    pdf_reader = PdfReader(uploaded_file)
+    return "".join(page.extract_text() or "" for page in pdf_reader.pages)
 
-def get_summary_from_gemini(text: str) -> str:
-    """
-    Sends text to the backend for summarization using Gemini.
-    """
-    st.info("Generating summary with Gemini...")
+# -------------------------
+# SUMMARY DIRECT FROM GEMINI
+# -------------------------
+def get_summary_from_gemini(text):
+    st.info("Generating summary using Gemini model...")
+    prompt = f"Summarize the following study notes in simple language:\n\n{text}"
     try:
-        response = requests.post(f"{BACKEND_URL}/summarize", json={"text": text})
-        response.raise_for_status() # Raise an exception for HTTP errors
-        return response.json().get("summary", "Could not retrieve summary.")
-    except requests.exceptions.ConnectionError:
-        st.error(f"Could not connect to the backend server at {BACKEND_URL}. Please ensure it is running.")
-        return "Error: Backend server not reachable."
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error during summarization request: {e}")
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
         return f"Error: {e}"
 
-def generate_quiz_from_gemini(text: str) -> str:
-    """
-    Sends text to the backend for quiz generation using Gemini.
-    """
-    st.info("Generating quiz with Gemini...")
+# -------------------------
+# QUIZ DIRECT FROM GEMINI
+# -------------------------
+def generate_quiz_from_gemini(text):
+    st.info("Generating quiz using Gemini model...")
+    prompt = (
+        "Create a 5-question MCQ quiz from the following text. "
+        "Include 4 options for each and mark the correct answer.\n\n"
+        f"{text}"
+    )
     try:
-        response = requests.post(f"{BACKEND_URL}/generate_quiz", json={"text": text})
-        response.raise_for_status() # Raise an exception for HTTP errors
-        return response.json().get("quiz", "Could not generate quiz.")
-    except requests.exceptions.ConnectionError:
-        st.error(f"Could not connect to the backend server at {BACKEND_URL}. Please ensure it is running.")
-        return "Error: Backend server not reachable."
-    except requests.exceptions.RequestException as e:
-        st.error(f"Error during quiz generation request: {e}")
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
         return f"Error: {e}"
 
-# --- Streamlit UI ---
+# -------------------------
+# STREAMLIT UI
+# -------------------------
 st.set_page_config(page_title="Study Notes Summarizer & Quiz Generator", layout="wide")
 
 st.title("📚 Study Notes Summarizer & Quiz Generator")
-st.markdown("Upload your PDF notes to get a concise summary and a practice quiz!")
+st.markdown("Upload your PDF notes to get a summary + quiz directly from **Gemini** (no backend needed).")
 
 uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 
-if uploaded_file is not None:
-    st.success("PDF uploaded successfully! Processing...")
+if uploaded_file:
+    st.success("PDF uploaded successfully!")
 
-    # Store the extracted text in session state to avoid re-extraction
     if "extracted_text" not in st.session_state:
         st.session_state.extracted_text = extract_text_from_pdf(uploaded_file)
         st.session_state.original_pdf_name = uploaded_file.name
 
     text = st.session_state.extracted_text
 
-    if text:
-        st.subheader(f"Summary for: {st.session_state.original_pdf_name}")
-        
-        # Only summarize if not already summarized or if user requests re-summary
+    if text.strip():
+        st.subheader(f"Summary ({st.session_state.original_pdf_name})")
+
         if "summary" not in st.session_state:
             st.session_state.summary = get_summary_from_gemini(text)
-        
-        if st.session_state.summary:
-            st.write(st.session_state.summary)
+
+        st.write(st.session_state.summary)
 
         st.markdown("---")
 
-        st.subheader("Quiz Time!")
-        if st.button("Create Quiz"):
-            # Only generate quiz if not already generated or if user requests re-generation
-            if "quiz" not in st.session_state:
-                st.session_state.quiz = generate_quiz_from_gemini(text)
-            
-            if st.session_state.quiz:
-                st.write(st.session_state.quiz)
-            else:
-                st.warning("Quiz generation did not return any content.")
-        elif "quiz" in st.session_state and st.session_state.quiz:
-            # Display quiz if already generated
+        st.subheader("Quiz Generator")
+
+        if st.button("Generate Quiz"):
+            st.session_state.quiz = generate_quiz_from_gemini(text)
+
+        if "quiz" in st.session_state:
             st.write(st.session_state.quiz)
-        else:
-            st.info("Click 'Create Quiz' to generate a quiz from your notes.")
+
     else:
-        st.error("Could not extract text from the PDF. Please ensure it's a readable PDF.")
+        st.error("Could not extract text. Make sure the PDF is not scanned or image-only.")
 else:
-    st.info("Please upload a PDF file to get started.")
+    st.info("Please upload a PDF to begin.")
