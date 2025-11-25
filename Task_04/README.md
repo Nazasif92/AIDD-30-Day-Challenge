@@ -7,7 +7,6 @@ Build an AI agent using the following technologies:
 - **PyPDF** (for extracting PDF text)
 - **Gemini CLI**
 - **Context7 MCP Server** (as the tool provider)
-
 ---
 
 ## 🎯 Agent Requirements
