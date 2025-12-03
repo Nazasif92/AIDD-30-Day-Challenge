@@ -3,3 +3,6 @@
 ![image](sp.plan.png)
 ![image](sp.tasks.png)
 ![image](sp.implement.png)
+![image](plus.png)
+![image](munus.png)
+![image](multply.png)
