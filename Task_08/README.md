@@ -4,5 +4,5 @@
 ![image](sp.tasks.png)
 ![image](sp.implement.png)
 ![image](plus.png)
-![image](munus.png)
+![image](minus.png)
 ![image](multply.png)
